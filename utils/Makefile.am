@@ -23,7 +23,7 @@ else
 endif
 
 bin_PROGRAMS = recinf recsel recins recdel recset recfix recfmt \
-               csv2rec rec2csv mysql2rec rec2mysql $(MDB2REC)
+               csv2rec rec2csv mysql2rec  $(MDB2REC)
 
 COMMONSRC = recutl.h recutl.c
 COMMONLIBS = $(top_builddir)/lib/librecutils.la $(top_builddir)/src/librec.la
@@ -90,13 +90,7 @@ mysql2rec_SOURCES = $(COMMONSRC) \
 mysql2rec_CFLAGS = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing   -g -DNDEBUG
 mysql2rec_LDFLAGS =  -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
 mysql2rec_LDADD = $(COMMONLIBS)  
-
-
-rec2mysql_SOURCES = $(COMMONSRC) \rec2mysql.c
-                 
-rec2mysql_CFLAGS = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing   -g -DNDEBUG
-rec2mysql_LDFLAGS =  -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
-rec2mysql_LDADD = $(COMMONLIBS) 
+ 
 
 
 # End of Makefile.am
