@@ -16,8 +16,6 @@
 #include <xalloc.h>
 #include <gettext.h>
 #define _(str) gettext (str)
-
-//#include <csv.h>
 #include <rec.h>
 #include <recutl.h>
  #include <my_global.h>
@@ -40,8 +38,10 @@ static void rec2mysql_generate_mysql (rec_rset_t rset, rec_fex_t fex);
 char             *rec2mysql_record_type    = NULL;
 rec_fex_t         rec2mysql_sort_by_fields = NULL;
 char              rec2mysql_delim          = ',';
-char              table_name[20]         ="";
-char              query[100]             ="create table ";
+char              table_name[50]         ="";
+char              query[1000]             ="create table ";
+char const *ftype[20];
+char const *fkey[10];
 
 /*
  * Command line options management
@@ -76,18 +76,18 @@ static const struct option GNU_longOptions[] =
 void
 recutl_print_help (void)
 {
-  /* TRANSLATORS: --help output, rec2csv synopsis.
+  /* TRANSLATORS: --help output, rec2mysql synopsis.
      no-wrap */
   printf (_("\
 Usage: rec2mysql [OPTIONS]... [REC_FILE]\n"));
 
-  /* TRANSLATORS: --help output, rec2csv short description.
+  /* TRANSLATORS: --help output, rec2mysql short description.
      no-wrap */
   fputs (_("\
 Convert rec data into mysql data.\n"), stdout);
 
   puts ("");
-  /* TRANSLATORS: --help output, rec2csv options.
+  /* TRANSLATORS: --help output, rec2mysql options.
      no-wrap */
   fputs (_("\
   -d, --delim=char                    sets the deliminator (default ',')\n\
@@ -160,6 +160,7 @@ rec2mysql_parse_args (int argc,
     }
 }
 char *field_name[30];
+char *field_name1[30];
 static void
 rec2mysql_generate_mysql (rec_rset_t rset,
                       rec_fex_t fex)
@@ -168,6 +169,10 @@ rec2mysql_generate_mysql (rec_rset_t rset,
   rec_fex_elem_t fex_elem[20];
   rec_record_t record;
   rec_field_t field[30];
+  rec_record_t record1;
+  rec_fex_elem_t fex_elem1[20];
+  
+  rec_field_t field1[30];
   
 
  
@@ -191,24 +196,11 @@ rec2mysql_generate_mysql (rec_rset_t rset,
   /* Generate the row with headers.  */
   for (i = 0; i < rec_fex_size (fex); i++)
     {
-      /*if (i != 0)
-        {
-          putc (rec2csv_delim, stdout);
-        }*/
-
       fex_elem[i] = rec_fex_get (fex, i);
       field_name[i] = xstrdup (rec_fex_elem_field_name (fex_elem[i]));
-      
      
-
       /* The header is FNAME or FNAME_N where N is the index starting
          at 1.  Note that we shall remove the trailing ':', if any. */
-
-      /*if (field_name[strlen(field_name)-1] == ':')
-        {
-          field_name[strlen(field_name)-1] = '\0';
-        }*/
-
 
       if (rec_fex_elem_min (fex_elem[i]) != 0)
         {
@@ -222,18 +214,72 @@ rec2mysql_generate_mysql (rec_rset_t rset,
           if (asprintf (&tmp, "%s", field_name[i]) == -1)
             recutl_out_of_memory ();
         }
-        //printf("%s\n",tmp );
-     // csv_fwrite (stdout, tmp, strlen(tmp));
-      //free (field_name);
-      //free (tmp);
-
+ 
     }
-
+    int k=0;
+    int last_flag=0;
+    int v_flag;
+    char fcpy[50];
+  
    for (i = 0; i < rec_fex_size (fex); i++)
    {
-    printf("%s\n",field_name[i] );
+
+    k=0;
+     while(ftype[k]!='\0')
+    {
+     
+     strcpy(fcpy,ftype[k]);
+      strtok(fcpy," ");
+    if((strcmp(fcpy,field_name[i]))==0)
+      {
+        v_flag=0;
+
+        if(i==rec_fex_size(fex)-1 )
+        {
+          strcat(query,ftype[k]);
+          last_flag=1;
+
+        }
+          
+          else
+          strcat(query,ftype[k]);
+          k++;
+          break;
+          
+      }
+      else
+        v_flag=1;
+  
+      k++;
+    }
+       if(ftype[k]=='\0' && last_flag==0 )
+    {
+      if(v_flag)
+      {
+        strcat(query,field_name[i]);
+        strcat(query," varchar(50)");
+      }
+    }
+    if(i==rec_fex_size(fex)-1)
+      strcat(query,"");
+    else
+      strcat(query,",");
+ 
    }
-  putc ('\n', stdout);
+   int l=0;
+   if(fkey[l]!=NULL)
+   {
+    strcat(query,",primary key(");
+      strcat(query,fkey[l]);
+      strcat(query,"))");
+
+   }
+   else
+   strcat(query,")");
+   if (mysql_query(con, query)) {
+      finish_with_error(con);
+        }
+  
 
   /* Generate the data rows.  */
   char values[100]="";
@@ -246,29 +292,12 @@ rec2mysql_generate_mysql (rec_rset_t rset,
       strcat(values," values(");
       for (i = 0; i < rec_fex_size (fex); i++)
         {
-         /* if (i != 0)
-            {
-              putc (rec2csv_delim, stdout);
-            }*/
-
+  
           fex_elem[i] = rec_fex_get (fex, i);
           field[i] = rec_record_get_field_by_name (record,
                                                 rec_fex_elem_field_name (fex_elem[i]),
                                                 rec_fex_elem_min (fex_elem[i]));
-          //if (field[i])
-            //{
-             // csv_fwrite (stdout,
-                          //rec_field_value (field),
-                          //strlen (rec_field_value (field)));
-              //printf("%s\n",rec_field_value(field[i]) );
-             
-            //}
-             //if(i=0)
-              //strcpy(values,rec_field_value(field[i]));
-            //printf("%s\n",values );
-              //else
-            //printf("%s\n",rec_rset_type_field_type (rec_field_value (field)));
-            //;
+
             strcat(values,"\"");
                 strcat(values,rec_field_value(field[i]));
                 if(i==(rec_fex_size(fex)-1))
@@ -278,23 +307,16 @@ rec2mysql_generate_mysql (rec_rset_t rset,
               }
               else
               {
-
-                //strcat(values,"\"");
-                //strcat(values,rec_field_value(field[i]));
                 strcat(values,"\",");
               }
 
         }
-        //printf("%s\n",values );
-        if (mysql_query(con, values)) {
+    
+      if (mysql_query(con, values)) {
       finish_with_error(con);
         }
 
-      //putc ('\n', stdout);
-      
     }
-
-    
 
   rec_mset_iterator_free (&iter);
   mysql_close(con);
@@ -345,6 +367,11 @@ rec2mysql_process_data (rec_db_t db)
   rec_fex_t row_fields;
   size_t i;
   rec_rset_t rset;
+  rec_record_t recdesc;
+  rec_mset_iterator_t iter;
+  rec_field_t field;
+  rec_mset_t m;
+  const char * fname;
 
   ret = true;
 
@@ -360,24 +387,47 @@ rec2mysql_process_data (rec_db_t db)
                   (rec_db_size (db) == 1))))
         {
           /* Process this record set.  */
-          //printf("%s\n",rec_rset_type(rset) );
+          
 
           strcat(table_name,rec_rset_type(rset));
-          //strcat(table_name,"(");
           strcat(query,table_name);
           strcat(query,"(");
 
-            //strcat(table_name,field_name);
+            recdesc=rec_rset_descriptor (rset);
+            m=malloc( sizeof(rec_mset_t));
+            int j;
+            
+            m= rec_record_mset (recdesc);
 
-          printf("%s\n",query);
+              iter = rec_mset_iterator (m);
+              int k=0;int l;
+              while (rec_mset_iterator_next (&iter, MSET_FIELD, (const void **) &field, NULL))
+              {
+                fname=rec_field_name(field);
 
+                if(strstr(fname,"%type")!=NULL)
+                {
+                    ftype[k]=rec_field_value(field);
+                    k++;
+                }
+                 
+               if(strstr(fname,"%key")!=NULL)
+                {
+                  fkey[l]=rec_field_value(field);
+                  l++;
+                }
+
+              }
+
+              k=0;
+           
           if (!rec_rset_sort (rset, rec2mysql_sort_by_fields))
             recutl_out_of_memory ();
 
           /* Build the fields that will appear in the row. */
           row_fields = rec2mysql_determine_fields (rset);
   
-          /* Generate the csv data.  */
+          /* Generate the mysql data.  */
           rec2mysql_generate_mysql (rset, row_fields);
 
           /* Cleanup.  */
@@ -410,17 +460,15 @@ main (int argc, char *argv[])
     }
   else
     /* Process the data.  */
+    
     if (!rec2mysql_process_data (db))
       {
         res = 1;
       }
   
-  //printf("%s\n",table_name );
-  
-
   rec_db_destroy (db);
   
   return res;
 }
 
-/* End of rec2csv.c */
+/* End of rec2mysql.c */
