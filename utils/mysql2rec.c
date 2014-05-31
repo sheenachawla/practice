@@ -8,8 +8,6 @@
 
 /* Copyright (C) 2010, 2011, 2012 Jose E. Marchesi */
 
-
-
 #include <config.h>
 #include <getopt.h>
 #include <xalloc.h>
