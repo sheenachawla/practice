@@ -7,8 +7,6 @@
  *
  */
 
-
-
 #include <config.h>
 #include <getopt.h>
 #include <string.h>
@@ -22,50 +20,37 @@
 #include <mysql.h>
 
 /* Forward declarations.  */
-static void rec2mysql_parse_args (int argc, char **argv);
 static bool rec2mysql_process_data (rec_db_t db);
 static rec_fex_t rec2mysql_determine_fields (rec_rset_t rset);
 static void rec2mysql_generate_mysql (rec_rset_t rset, rec_fex_t fex);
 
 /*
- * Types
- */
-
-/*
  * Global variables
  */
 
-char             *rec2mysql_record_type    = NULL;
-rec_fex_t         rec2mysql_sort_by_fields = NULL;
-char              rec2mysql_delim          = ',';
-char              table_name[50]         ="";
+char              table_name[50]          ="";
 char              query[1000]             ="create table ";
-char const *ftype[20];
-char const *fkey[10];
-
-/*
- * Command line options management
- */
-
-enum
-  {
-    COMMON_ARGS,
-    RECORD_TYPE_ARG,
-    SORT_ARG
-  };
-
-static const struct option GNU_longOptions[] =
-  {
-    COMMON_LONG_ARGS,
-    {"type", required_argument, NULL, RECORD_TYPE_ARG},
-    {"sort", required_argument, NULL, SORT_ARG},
-    {NULL, 0, NULL, 0}
-  };
+char              const *ftype[20];
+char              const *fkey[10];
+char              const *funi[20];
+char              const *fnnull[20];
+char              pass[10];
+char              dname[10];
+char              *field_name[30];
 
 
 /*
  * Functions.
  */
+ /*Command line arguments  print usage function*/
+ void print_usage(void)       
+ {
+  printf("Usage: rec2mysql [REC_FILE] [ROOT_PASSWORD] [DATABASE_NAME]\n");
+  printf("REC_FILE: file to be converted into mysql format.\n");
+  printf("ROOT_PASSWORD: password for root login into mysql database.\n");
+  printf("DATABASE_NAME: name of the database in which the new table needs to be created.\n");
+ }
+ /*Mysql error function*/
  void finish_with_error(MYSQL *con)
 {
   fprintf(stderr, "%s\n", mysql_error(con));
@@ -73,94 +58,8 @@ static const struct option GNU_longOptions[] =
   exit(1);        
 }
 
-void
-recutl_print_help (void)
-{
-  /* TRANSLATORS: --help output, rec2mysql synopsis.
-     no-wrap */
-  printf (_("\
-Usage: rec2mysql [OPTIONS]... [REC_FILE]\n"));
 
-  /* TRANSLATORS: --help output, rec2mysql short description.
-     no-wrap */
-  fputs (_("\
-Convert rec data into mysql data.\n"), stdout);
 
-  puts ("");
-  /* TRANSLATORS: --help output, rec2mysql options.
-     no-wrap */
-  fputs (_("\
-  -d, --delim=char                    sets the deliminator (default ',')\n\
-  -t, --type=TYPE                     record set to convert to mysql; if this parameter\n\
-                                        is omitted then the default record set is used\n\
-  -S, --sort=FIELDS                   sort the output by the specified fields.\n"),
-         stdout);
-
-  recutl_print_help_common ();
-  puts ("");
-  recutl_print_help_footer ();
-}
-
-static void
-rec2mysql_parse_args (int argc,
-                    char **argv)
-{
-  int ret;
-  char c;
-
-  while ((ret = getopt_long (argc,
-                             argv,
-                             "t:S:d:",
-                             GNU_longOptions,
-                             NULL)) != -1)
-    {
-      c = ret;
-      switch (c)
-        {
-          COMMON_ARGS_CASES
-        case RECORD_TYPE_ARG:
-        case 'd':
-          {
-            rec2mysql_delim = optarg[0];
-            break;
-          }
-        case 't':
-          {
-            rec2mysql_record_type = xstrdup (optarg);
-            break;
-          }
-        case SORT_ARG:
-        case 'S':
-          {
-            if (rec2mysql_sort_by_fields)
-              {
-                recutl_fatal (_("only one list of fields can be specified as a sorting criteria.\n"));
-              }
-
-            /* Parse the field name.  */
-
-            if (!rec_fex_check (optarg, REC_FEX_CSV))
-              {
-                recutl_fatal (_("invalid field name list in -S.\n"));
-              }
-
-            rec2mysql_sort_by_fields = rec_fex_new (optarg, REC_FEX_CSV);
-            if (!rec2mysql_sort_by_fields)
-              {
-                recutl_fatal (_("internal error creating fex.\n"));
-              }
-
-            break;
-          }
-        default:
-          {
-            exit (EXIT_FAILURE);
-          }
-        }
-    }
-}
-char *field_name[30];
-char *field_name1[30];
 static void
 rec2mysql_generate_mysql (rec_rset_t rset,
                       rec_fex_t fex)
@@ -169,13 +68,6 @@ rec2mysql_generate_mysql (rec_rset_t rset,
   rec_fex_elem_t fex_elem[20];
   rec_record_t record;
   rec_field_t field[30];
-  rec_record_t record1;
-  rec_fex_elem_t fex_elem1[20];
-  
-  rec_field_t field1[30];
-  
-
- 
   
   char *tmp;
   size_t i;
@@ -187,7 +79,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,
       exit(1);
   }  
 
-  if (mysql_real_connect(con, "localhost", "root", "k", "test", 0, NULL, 0) == NULL) 
+  if (mysql_real_connect(con, "localhost", "root", pass, dname, 0, NULL, 0) == NULL)      //mysql connection
   {
       finish_with_error(con);
   } 
@@ -200,7 +92,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,
       field_name[i] = xstrdup (rec_fex_elem_field_name (fex_elem[i]));
      
       /* The header is FNAME or FNAME_N where N is the index starting
-         at 1.  Note that we shall remove the trailing ':', if any. */
+         at 1. */
 
       if (rec_fex_elem_min (fex_elem[i]) != 0)
         {
@@ -225,30 +117,28 @@ rec2mysql_generate_mysql (rec_rset_t rset,
    {
 
     k=0;
-     while(ftype[k]!='\0')
+     while(ftype[k]!='\0')                                      //checking for every type mentioned in the rec file against all the field names
     {
-     
      strcpy(fcpy,ftype[k]);
-      strtok(fcpy," ");
-    if((strcmp(fcpy,field_name[i]))==0)
+     strtok(fcpy," ");
+      if((strcmp(fcpy,field_name[i]))==0)
       {
         v_flag=0;
-
         if(i==rec_fex_size(fex)-1 )
         {
-          strcat(query,ftype[k]);
-          last_flag=1;
-
+          strcat(query,ftype[k]);                               //concatinating the type of the field to the query formed for mysql create table query
+          last_flag=1;                                           //last_flag is 1 when the field that is being checked is the last one to be inserted in the query.
         }
           
-          else
+        else
           strcat(query,ftype[k]);
-          k++;
-          break;
+        
+        k++;
+        break;
           
       }
       else
-        v_flag=1;
+        v_flag=1;                                                 //v_flag is 1 when the field is string variable
   
       k++;
     }
@@ -260,6 +150,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,
         strcat(query," varchar(50)");
       }
     }
+
     if(i==rec_fex_size(fex)-1)
       strcat(query,"");
     else
@@ -267,16 +158,23 @@ rec2mysql_generate_mysql (rec_rset_t rset,
  
    }
    int l=0;
-   if(fkey[l]!=NULL)
+   if(fkey[l]!=NULL)                                               //fkey contains all the primary keys,if any, in the mysql query.
    {
     strcat(query,",primary key(");
       strcat(query,fkey[l]);
-      strcat(query,"))");
+      strcat(query,")");
 
    }
+   int u=0;
+   if(funi[u]!=NULL)                                              //funi contains all the unique keys,if any, in the mysql query.
+   {
+       strcat(query,",unique(");
+      strcat(query,funi[l]);
+      strcat(query,"))");
+   }
    else
-   strcat(query,")");
-   if (mysql_query(con, query)) {
+    strcat(query,")");
+   if (mysql_query(con, query)) {                                  //mysql query for table creation being executed.
       finish_with_error(con);
         }
   
@@ -312,7 +210,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,
 
         }
     
-      if (mysql_query(con, values)) {
+      if (mysql_query(con, values)) {                                 //mysql query for values to be inserted in the table 
       finish_with_error(con);
         }
 
@@ -377,13 +275,9 @@ rec2mysql_process_data (rec_db_t db)
 
   for (i = 0; i < rec_db_size (db); i++)
     {
+      
       rset = rec_db_get_rset (db, i);
-      if (((rec2mysql_record_type)
-           && rec_rset_type (rset)
-           && (strcmp (rec_rset_type (rset),
-                       rec2mysql_record_type) == 0))
-          || (!rec2mysql_record_type
-              && (!rec_rset_type (rset) ||
+      if (( (!rec_rset_type (rset) ||
                   (rec_db_size (db) == 1))))
         {
           /* Process this record set.  */
@@ -397,32 +291,41 @@ rec2mysql_process_data (rec_db_t db)
             m=malloc( sizeof(rec_mset_t));
             int j;
             
-            m= rec_record_mset (recdesc);
+            m= rec_record_mset (recdesc);                                 //this record contains the the record descriptor.
 
               iter = rec_mset_iterator (m);
-              int k=0;int l;
+              int k=0;
+              int l,u=0,n=0;
               while (rec_mset_iterator_next (&iter, MSET_FIELD, (const void **) &field, NULL))
               {
                 fname=rec_field_name(field);
 
-                if(strstr(fname,"%type")!=NULL)
+                if(strstr(fname,"%type")!=NULL)                          //comparing every field name of the record descriptor.
                 {
-                    ftype[k]=rec_field_value(field);
+                    ftype[k]=rec_field_value(field);                     //this one is for data type
                     k++;
                 }
                  
-               if(strstr(fname,"%key")!=NULL)
+               if(strstr(fname,"%key")!=NULL)                             //primary key
                 {
                   fkey[l]=rec_field_value(field);
                   l++;
                 }
+                 if(strstr(fname,"%unique")!=NULL)                             //unique key
+                {
+                  funi[u]=rec_field_value(field);
+                  u++;
+                }
+                   if(strstr(fname,"%mandatory")!=NULL)                             //mandatory key
+                {
+                  fnnull[n]=rec_field_value(field);
+                  n++;
+                }
+
 
               }
 
               k=0;
-           
-          if (!rec_rset_sort (rset, rec2mysql_sort_by_fields))
-            recutl_out_of_memory ();
 
           /* Build the fields that will appear in the row. */
           row_fields = rec2mysql_determine_fields (rset);
@@ -445,30 +348,35 @@ main (int argc, char *argv[])
   rec_db_t db;
 
   res = 0;
+   int i;
+   char *d_argv[50];
+   if(argc!=4)
+   {
+      print_usage();
+   }
+  else
+  {
+    recutl_init ("rec2mysql");
 
-
-  recutl_init ("rec2mysql");
-
-  /* Parse arguments.  */
-  rec2mysql_parse_args (argc, argv);
-
-  /* Get the input data.  */
-  db = recutl_build_db (argc, argv);
-  if (!db)
+    /* Parse arguments.  */
+    strcat(pass,argv[2]);
+    strcat(dname,argv[3]);
+    /* Get the input data.  */
+    db = recutl_build_db (2, argv);
+    if (!db)
     {
       res = 1;
     }
-  else
+    else
     /* Process the data.  */
-    
-    if (!rec2mysql_process_data (db))
+     if (!rec2mysql_process_data (db))
       {
         res = 1;
       }
   
   rec_db_destroy (db);
-  
-  return res;
+}
+    return res;
 }
 
 /* End of rec2mysql.c */

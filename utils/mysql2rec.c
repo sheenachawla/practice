@@ -44,9 +44,20 @@ void finish_with_error(MYSQL *con)
   mysql_close(con);
   exit(1);        
 }
+void print_usage(void)
+{
+  printf("Usage: mysql2rec [ROOT_PASSWORD] [DATABASE_NAME]\nROOT_PASSWORD: password for root login into mysql database\nDATABASE_NAME: name of the database from which rec file is created\n");
+}
 
 int main(int argc, char **argv)
 {
+  if(argc !=3)
+  {
+    print_usage();
+  }
+  else
+  {
+
   MYSQL *con = mysql_init(NULL);  //initializing mysql 
    writ = rec_writer_new (stdout);           //initialising rec_writer to write on stdout
   
@@ -286,4 +297,5 @@ rec_write_db (writ,s2r->db);        //writing the database onto stdout
   mysql_close(con);
   
   exit(0);
+}
 }
