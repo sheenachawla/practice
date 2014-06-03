@@ -29,11 +29,12 @@ static void rec2mysql_generate_mysql (rec_rset_t rset, rec_fex_t fex);
  */
 
 char              table_name[50]          ="";
-char              query[1000]             ="create table ";
+char              query[1500]             ="create table ";
 char              const *ftype[20];
 char              const *fkey[10];
 char              const *funi[20];
 char              const *fnnull[20];
+char              const *fauto[20];
 char              pass[10];
 char              dname[10];
 char              *field_name[50];
@@ -110,9 +111,12 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
     int k=0;
     int last_flag=0;
     int v_flag;
+    int a_flag;
     char fcpy[50];
-    int n;
+    int n,a;
     char fnull[50]="";
+    char fto[50]="";
+    char pri[50]="";
   
    for (i = 0; i < rec_fex_size (fex); i++)
    {
@@ -143,6 +147,19 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
                   strcpy(fnull,"\0");
                   n++;
               }
+              a=0;
+              while(fauto[a]!='\0')
+              {
+                  strcat(fto,fauto[a]);
+                  if((memcmp(fto,field_name[i],strlen(fto)-1)==0))
+                  {
+                      a_flag=0;
+                      strcat(query," AUTO_INCREMENT");
+                      strcat(pri,field_name[i]);
+                  }
+                  strcpy(fto,"\0");
+                  a++;
+              }
         
               k++;
               break;
@@ -160,6 +177,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
                 strcat(query,field_name[i]);
                 strcat(query," varchar(50)");
                 n=0;
+
                 while(fnnull[n]!='\0')
                 {
                     strcat(fnull,fnnull[n]);
@@ -170,6 +188,18 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
                     strcpy(fnull,"\0");
                     n++;
                 }
+                while(fauto[a]!='\0')
+                {
+                    strcat(fto,fauto[a]);
+                    if((memcmp(fto,field_name[i],strlen(fto)-1)==0))
+                    {
+                      a_flag=0;
+                      strcat(query," AUTO_INCREMENT");
+                      strcat(pri,field_name[i]);
+                    }
+                    strcpy(fto,"\0");
+                    a++;
+                }
             }
         }
 
@@ -179,9 +209,12 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
             strcat(query,",");
    }
    int l=0;
-   if(fkey[l]!=NULL)                                               //fkey contains all the primary keys,if any, in the mysql query.
+   if(fkey[l]!=NULL || a_flag==0)                                               //fkey contains all the primary keys,if any, in the mysql query.
    {
       strcat(query,",primary key(");
+      if(a_flag==0)
+        strcat(query,pri);
+      if(fkey[l]!=NULL)
       strcat(query,fkey[l]);
       strcat(query,")");
    }
@@ -195,6 +228,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
    else
       strcat(query,")");
    
+  
     if (mysql_query(con, query))
     {                                  //mysql query for table creation being executed.
         finish_with_error(con);
@@ -310,7 +344,7 @@ rec2mysql_process_data (rec_db_t db)
           m= rec_record_mset (recdesc);                                 //this record contains the the record descriptor.
           iter = rec_mset_iterator (m);
           int k=0;
-          int l,u=0,n=0;
+          int l,u=0,n=0,a=0;
           while (rec_mset_iterator_next (&iter, MSET_FIELD, (const void **) &field, NULL))
           {
               fname=rec_field_name(field);
@@ -334,8 +368,13 @@ rec2mysql_process_data (rec_db_t db)
                  fnnull[n]=rec_field_value(field);
                  n++;
               }
+               if(strstr(fname,"%auto")!=NULL)                             //mandatory key
+              {
+                 fauto[a]=rec_field_value(field);
+                 a++;
+              }
           }
-
+         
           /* Build the fields that will appear in the row. */
           row_fields = rec2mysql_determine_fields (rset);
   
