@@ -23,7 +23,7 @@ else
 endif
 
 bin_PROGRAMS = recinf recsel recins recdel recset recfix recfmt \
-               csv2rec rec2csv mysql2rec rec2mysql sqlite2rec $(MDB2REC) rec2sqlite
+               csv2rec rec2csv mysql2rec rec2mysql sqlite2rec $(MDB2REC) rec2sqlite rec2gre gre2rec
 
 COMMONSRC = recutl.h recutl.c
 COMMONLIBS = $(top_builddir)/lib/librecutils.la $(top_builddir)/src/librec.la
@@ -109,6 +109,18 @@ rec2sqlite_SOURCES = $(COMMONSRC) \
 rec2sqlite_CFLAGS =-I/usr/local/include 
 rec2sqlite_LDFLAGS = -L/usr/local/bin  -lsqlite3 
 rec2sqlite_LDADD = $(COMMONLIBS)
+
+rec2gre_SOURCES = $(COMMONSRC) \
+                 rec2gre.c
+rec2gre_CFLAGS =-I/usr/include/postgresql 
+rec2gre_LDFLAGS = -L/usr/lib  -lpq -lm
+rec2gre_LDADD = $(COMMONLIBS)
+
+gre2rec_SOURCES = $(COMMONSRC) \
+                 gre2rec.c
+gre2rec_CFLAGS =-I/usr/include/postgresql 
+gre2rec_LDFLAGS = -L/usr/lib  -lpq 
+gre2rec_LDADD = $(COMMONLIBS)
 
 
 # End of Makefile.am
