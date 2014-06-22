@@ -196,7 +196,7 @@ while(field = mysql_fetch_field(result))   //loop until field name is fetched
       }
 
        /*checking the type of field-if it is date*/
-      if(MYSQL_TYPE_DATE == field->type)
+      if(MYSQL_TYPE_DATE == field->type || MYSQL_TYPE_TIMESTAMP ==field->type || MYSQL_TYPE_TIME == field->type || MYSQL_TYPE_DATETIME == field->type || MYSQL_TYPE_YEAR == field->type)
       {
         snprintf (type_value, TYPE_VALUE_SIZE,"%s date", field->name);
 
