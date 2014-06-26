@@ -76,23 +76,13 @@ main(int argc, char **argv)
      * a good example.
      */
 
-    /* Start a transaction block */
-        res = PQexec(conn, "BEGIN");
-        if (PQresultStatus(res) != PGRES_COMMAND_OK)
-        {
-            fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(conn));
-            PQclear(res);
-            exit_nicely(conn);
-        }
-
         writ = rec_writer_new (stdout);           //initialising rec_writer to write on stdout
         /*
      * Should PQclear PGresult whenever it is no longer needed to avoid memory
      * leaks
      */
    
-     //PQclear(res);
-        PQclear(res);
+
         char string[100]="";    //empty string,to be used in query formation while concatinating.
         struct gre2rec *g2r;    //struct gre2rec pointer
 
@@ -105,10 +95,17 @@ main(int argc, char **argv)
         g2r->rset = rec_rset_new ();        //initialising a new rset i.e for postgresql it is a new table
   
         g2r->record = rec_record_new();     //initialising a new record i.e. for postgresql it is a new row
-        g2r->recfield = rec_field_new ("%rec", "test");       //initialising the record descriptor
+        g2r->recfield = rec_field_new ("%rec", argv[2]);       //initialising the record descriptor
         rec_mset_append (rec_record_mset (g2r->record), MSET_FIELD, (void *) g2r->recfield, MSET_ANY);
+        
+
+
+
+
+
+
         rec_rset_set_descriptor (g2r->rset, g2r->record); 
-    //res = PQexec(conn, "FETCH ALL in myportal");
+    
         if (PQresultStatus(res) != PGRES_TUPLES_OK)
         {
             fprintf(stderr, "FETCH ALL failed: %s", PQerrorMessage(conn));
@@ -140,9 +137,7 @@ main(int argc, char **argv)
         res = PQexec(conn, "CLOSE myportal");
         PQclear(res);
    
-    /* end the transaction */
-        res = PQexec(conn, "END");
-        PQclear(res);
+   
 
     /* close the connection to the database and cleanup */
         PQfinish(conn);
