@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
    int i;
    if(argc!=4)
    {
-      print_usage();
+        print_usage();
    }
    else
    {
@@ -404,4 +404,5 @@ int main(int argc, char *argv[])
        rec_db_destroy (db);
     }
     return res;
+
 }
