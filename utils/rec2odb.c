@@ -26,7 +26,7 @@ char              const *funi[20];
 char              const *fnnull[20];
 char              const *fauto[20];
 char              pass[10];
-char              dname[10];
+char              uname[10];
 char              *field_name[50];
 
 
@@ -68,7 +68,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
     if(!OCI_Initialize(err_handler, NULL, OCI_ENV_DEFAULT)) 
         return EXIT_FAILURE;
  
-    cn = OCI_ConnectionCreate("", pass, dname, OCI_SESSION_DEFAULT);
+    cn = OCI_ConnectionCreate("", pass, uname, OCI_SESSION_DEFAULT);
 
      /* Generate the row with headers.  */
     for (i = 0; i < rec_fex_size (fex); i++)
@@ -174,7 +174,18 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
                     strcpy(fnull,"\0");
                     n++;
                 }
-              
+                while(fauto[a]!='\0')
+                {
+                    strcat(fto,fauto[a]);
+                    if((memcmp(fto,field_name[i],strlen(fto)-1)==0))
+                    {
+                      a_flag=0;
+                      strcat(query," AUTO_INCREMENT");
+                      strcat(pri,field_name[i]);
+                    }
+                    strcpy(fto,"\0");
+                    a++;
+                }
             }
         }
 
@@ -193,7 +204,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
       strcat(query,fkey[l]);
       strcat(query,")");
    }
-
+   
 
     st = OCI_StatementCreate(cn);
     OCI_ExecuteStmt(st, query);
@@ -320,7 +331,17 @@ rec2odb_process_data (rec_db_t db)
                  fkey[l]=rec_field_value(field);
                  l++;
               }
-
+            
+              if(strstr(fname,"%mandatory")!=NULL)                             //mandatory key
+              {
+                 fnnull[n]=rec_field_value(field);
+                 n++;
+              }
+               if(strstr(fname,"%auto")!=NULL)                             //mandatory key
+              {
+                 fauto[a]=rec_field_value(field);
+                 a++;
+              }
           }
          
           /* Build the fields that will appear in the row. */
@@ -339,7 +360,6 @@ rec2odb_process_data (rec_db_t db)
  
 int main(int argc, char *argv[])
 {
-  
     int res;
    rec_db_t db;
 
@@ -353,8 +373,8 @@ int main(int argc, char *argv[])
    {
      recutl_init ("rec2odb");
     /* Parse arguments.  */
-     strcat(pass,argv[2]);
-     strcat(dname,argv[3]);
+     strcat(uname,argv[2]);
+     strcat(pass,argv[3]);
     /* Get the input data.  */
      db = recutl_build_db (2, argv);
      if (!db)
