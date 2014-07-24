@@ -37,7 +37,7 @@ void print_usage(void)
  
 int main(int argc, char *argv[])
 {
-    if(arc!=4)
+    if(argc!=4)
     {
         print_usage();
     }
