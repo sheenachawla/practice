@@ -23,7 +23,7 @@ else
 endif
 
 bin_PROGRAMS = recinf recsel recins recdel recset recfix recfmt \
-               csv2rec rec2csv mysql2rec rec2mysql sqlite2rec $(MDB2REC) rec2sqlite rec2gre gre2rec
+               csv2rec rec2csv mysql2rec rec2mysql sqlite2rec $(MDB2REC) rec2sqlite rec2gre gre2rec odb2rec rec2odb
 
 COMMONSRC = recutl.h recutl.c
 COMMONLIBS = $(top_builddir)/lib/librecutils.la $(top_builddir)/src/librec.la
@@ -88,14 +88,14 @@ mysql2rec_SOURCES = $(COMMONSRC) \
                   mysql2rec.c
                  
 mysql2rec_CFLAGS = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing   -g -DNDEBUG
-mysql2rec_LDFLAGS =  -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
+mysql2rec_LDFLAGS =  -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz  -ldl
 mysql2rec_LDADD = $(COMMONLIBS)  
 
 rec2mysql_SOURCES = $(COMMONSRC) \
                   rec2mysql.c
                  
 rec2mysql_CFLAGS = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing   -g -DNDEBUG
-rec2mysql_LDFLAGS =  -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz  -ldl
+rec2mysql_LDFLAGS =  -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
 rec2mysql_LDADD = $(COMMONLIBS)
 
 sqlite2rec_SOURCES = $(COMMONSRC) \
@@ -110,11 +110,13 @@ rec2sqlite_CFLAGS =-I/usr/local/include
 rec2sqlite_LDFLAGS = -L/usr/local/bin  -lsqlite3 
 rec2sqlite_LDADD = $(COMMONLIBS)
 
+
 rec2gre_SOURCES = $(COMMONSRC) \
                  rec2gre.c
 rec2gre_CFLAGS =-I/usr/include/postgresql 
 rec2gre_LDFLAGS = -L/usr/lib  -lpq -lm
 rec2gre_LDADD = $(COMMONLIBS)
+
 
 gre2rec_SOURCES = $(COMMONSRC) \
                  gre2rec.c
@@ -122,5 +124,17 @@ gre2rec_CFLAGS =-I/usr/include/postgresql
 gre2rec_LDFLAGS = -L/usr/lib  -lpq 
 gre2rec_LDADD = $(COMMONLIBS)
 
+
+odb2rec_SOURCES = $(COMMONSRC) \
+                 odb2rec.c
+odb2rec_CFLAGS =-I/usr/local/include 
+odb2rec_LDFLAGS = -L/usr/local/lib -locilib 
+odb2rec_LDADD = $(COMMONLIBS)
+
+rec2odb_SOURCES = $(COMMONSRC) \
+                 rec2odb.c
+rec2odb_CFLAGS =-I/usr/local/include 
+rec2odb_LDFLAGS = -L/usr/local/lib -locilib 
+rec2odb_LDADD = $(COMMONLIBS)
 
 # End of Makefile.am
