@@ -174,6 +174,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
                     strcpy(fnull,"\0");
                     n++;
                 }
+<<<<<<< HEAD
                 while(fauto[a]!='\0')
                 {
                     strcat(fto,fauto[a]);
@@ -186,6 +187,9 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
                     strcpy(fto,"\0");
                     a++;
                 }
+=======
+              
+>>>>>>> f6796406cef0362b8ffa8ea380ad6607b4d888f0
             }
         }
 
@@ -204,6 +208,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
       strcat(query,fkey[l]);
       strcat(query,")");
    }
+<<<<<<< HEAD
    int u=0;
    if(funi[u]!=NULL)                                              //funi contains all the unique keys,if any, in the oracle query.
    {
@@ -214,6 +219,9 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
    else
       strcat(query,")");
     printf("%s\n",query );
+=======
+
+>>>>>>> f6796406cef0362b8ffa8ea380ad6607b4d888f0
 
     st = OCI_StatementCreate(cn);
     OCI_ExecuteStmt(st, query);
@@ -340,6 +348,7 @@ rec2odb_process_data (rec_db_t db)
                  fkey[l]=rec_field_value(field);
                  l++;
               }
+<<<<<<< HEAD
               if(strstr(fname,"%unique")!=NULL)                             //unique key
               {
                  funi[u]=rec_field_value(field);
@@ -355,6 +364,9 @@ rec2odb_process_data (rec_db_t db)
                  fauto[a]=rec_field_value(field);
                  a++;
               }
+=======
+
+>>>>>>> f6796406cef0362b8ffa8ea380ad6607b4d888f0
           }
          
           /* Build the fields that will appear in the row. */
@@ -373,15 +385,24 @@ rec2odb_process_data (rec_db_t db)
  
 int main(int argc, char *argv[])
 {
+<<<<<<< HEAD
 
      int res;
+=======
+  
+    int res;
+>>>>>>> f6796406cef0362b8ffa8ea380ad6607b4d888f0
    rec_db_t db;
 
    res = 0;
    int i;
    if(argc!=4)
    {
+<<<<<<< HEAD
         print_usage();
+=======
+      print_usage();
+>>>>>>> f6796406cef0362b8ffa8ea380ad6607b4d888f0
    }
    else
    {
@@ -404,5 +425,8 @@ int main(int argc, char *argv[])
        rec_db_destroy (db);
     }
     return res;
+<<<<<<< HEAD
 
+=======
+>>>>>>> f6796406cef0362b8ffa8ea380ad6607b4d888f0
 }
