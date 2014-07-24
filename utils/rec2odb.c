@@ -26,7 +26,7 @@ char              const *funi[20];
 char              const *fnnull[20];
 char              const *fauto[20];
 char              pass[10];
-char              uname[10];
+char              dname[10];
 char              *field_name[50];
 
 
@@ -68,7 +68,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
     if(!OCI_Initialize(err_handler, NULL, OCI_ENV_DEFAULT)) 
         return EXIT_FAILURE;
  
-    cn = OCI_ConnectionCreate("", pass, uname, OCI_SESSION_DEFAULT);
+    cn = OCI_ConnectionCreate("", pass, dname, OCI_SESSION_DEFAULT);
 
      /* Generate the row with headers.  */
     for (i = 0; i < rec_fex_size (fex); i++)
@@ -204,7 +204,16 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
       strcat(query,fkey[l]);
       strcat(query,")");
    }
-   
+   int u=0;
+   if(funi[u]!=NULL)                                              //funi contains all the unique keys,if any, in the oracle query.
+   {
+      strcat(query,",unique(");
+      strcat(query,funi[l]);
+      strcat(query,"))");
+   }
+   else
+      strcat(query,")");
+    printf("%s\n",query );
 
     st = OCI_StatementCreate(cn);
     OCI_ExecuteStmt(st, query);
@@ -331,7 +340,11 @@ rec2odb_process_data (rec_db_t db)
                  fkey[l]=rec_field_value(field);
                  l++;
               }
-            
+              if(strstr(fname,"%unique")!=NULL)                             //unique key
+              {
+                 funi[u]=rec_field_value(field);
+                 u++;
+              }
               if(strstr(fname,"%mandatory")!=NULL)                             //mandatory key
               {
                  fnnull[n]=rec_field_value(field);
@@ -360,7 +373,8 @@ rec2odb_process_data (rec_db_t db)
  
 int main(int argc, char *argv[])
 {
-    int res;
+
+     int res;
    rec_db_t db;
 
    res = 0;
@@ -373,8 +387,8 @@ int main(int argc, char *argv[])
    {
      recutl_init ("rec2odb");
     /* Parse arguments.  */
-     strcat(uname,argv[2]);
-     strcat(pass,argv[3]);
+     strcat(pass,argv[2]);
+     strcat(dname,argv[3]);
     /* Get the input data.  */
      db = recutl_build_db (2, argv);
      if (!db)
