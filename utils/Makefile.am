@@ -23,7 +23,7 @@ else
 endif
 
 bin_PROGRAMS = recinf recsel recins recdel recset recfix recfmt \
-               csv2rec rec2csv mysql2rec rec2mysql sqlite2rec $(MDB2REC) rec2sqlite rec2gre gre2rec odb2rec rec2odb
+               csv2rec rec2csv mysql2rec rec2mysql sqlite2rec $(MDB2REC) rec2sqlite rec2gre gre2rec odb2rec rec2odb mongo2rec
 
 COMMONSRC = recutl.h recutl.c
 COMMONLIBS = $(top_builddir)/lib/librecutils.la $(top_builddir)/src/librec.la
@@ -136,5 +136,11 @@ rec2odb_SOURCES = $(COMMONSRC) \
 rec2odb_CFLAGS =-I/usr/local/include 
 rec2odb_LDFLAGS = -L/usr/local/lib -locilib 
 rec2odb_LDADD = $(COMMONLIBS)
+
+mongo2rec_SOURCES = $(COMMONSRC) \
+                 mongo2rec.c
+mongo2rec_CFLAGS = -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0 
+mongo2rec_LDFLAGS = -L/usr/local/lib -lssl -lcrypto -lrt -lmongoc-1.0 -lbson-1.0
+mongo2rec_LDADD=  $(COMMONLIBS)             
 
 # End of Makefile.am
