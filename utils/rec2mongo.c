@@ -104,11 +104,14 @@ rec2mongo_generate_mongo (rec_rset_t rset,rec_fex_t fex)
               }
 
               bson_destroy (doc);
-              mongoc_collection_destroy (collection);
-              mongoc_client_destroy (client);
+              
 
         }
+              
+             
     }
+    mongoc_collection_destroy (collection);
+     mongoc_client_destroy (client);
 }
  static rec_fex_t 
 rec2mongo_determine_fields (rec_rset_t rset)
