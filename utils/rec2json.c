@@ -91,7 +91,7 @@ rec2json_generate_json (rec_rset_t rset,rec_fex_t fex)
              
     }
       /*Now printing the json object*/
-  	printf ("The json object : %s\n",json_object_to_json_string(jobj));
+  		printf ("The json object : %s\n",json_object_to_json_string(jobj));
 }
  static rec_fex_t 
 rec2json_determine_fields (rec_rset_t rset)
