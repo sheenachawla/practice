@@ -26,7 +26,7 @@ char              const *funi[20];
 char              const *fnnull[20];
 char              const *fauto[20];
 char              pass[10];
-char              dname[10];
+char              uname[10];
 char              *field_name[50];
 
 
@@ -68,7 +68,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
     if(!OCI_Initialize(err_handler, NULL, OCI_ENV_DEFAULT)) 
         return EXIT_FAILURE;
  
-    cn = OCI_ConnectionCreate("", pass, dname, OCI_SESSION_DEFAULT);
+    cn = OCI_ConnectionCreate("", uname, pass, OCI_SESSION_DEFAULT);
 
      /* Generate the row with headers.  */
     for (i = 0; i < rec_fex_size (fex); i++)
@@ -139,7 +139,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
                   strcat(fto,fauto[a]);
                   if((memcmp(fto,field_name[i],strlen(fto)-1)==0))
                   {
-                      a_flag=0;
+                      a_flag=1;
                       strcat(query," AUTO_INCREMENT");
                       strcat(pri,field_name[i]);
                   }
@@ -179,7 +179,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
                     strcat(fto,fauto[a]);
                     if((memcmp(fto,field_name[i],strlen(fto)-1)==0))
                     {
-                      a_flag=0;
+                      a_flag=1;
                       strcat(query," AUTO_INCREMENT");
                       strcat(pri,field_name[i]);
                     }
@@ -213,7 +213,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
    }
    else
       strcat(query,")");
-    printf("%s\n",query );
+   
 
     st = OCI_StatementCreate(cn);
     OCI_ExecuteStmt(st, query);
@@ -234,18 +234,19 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
                                                 rec_fex_elem_field_name (fex_elem[i]),
                                                 rec_fex_elem_min (fex_elem[i]));
 
-            strcat(values,"");
+            strcat(values,"\'");
             strcat(values,rec_field_value(field[i]));
             if(i==(rec_fex_size(fex)-1))
             {
-                strcat(values,"')");
+                strcat(values,"\')");
             }
             else
             {
-                strcat(values,"',");
+                strcat(values,"\',");
             }
+            
       }
-      printf("%s\n",values );
+     
     
     st2=OCI_StatementCreate(cn);
     
@@ -326,7 +327,7 @@ rec2odb_process_data (rec_db_t db)
           m= rec_record_mset (recdesc);                                 //this record contains the the record descriptor.
           iter = rec_mset_iterator (m);
           int k=0;
-          int l,u=0,n=0,a=0;
+          int l=0,u=0,n=0,a=0;
           while (rec_mset_iterator_next (&iter, MSET_FIELD, (const void **) &field, NULL))
           {
               fname=rec_field_name(field);
@@ -386,8 +387,8 @@ int main(int argc, char *argv[])
    {
      recutl_init ("rec2odb");
     /* Parse arguments.  */
-     strcat(pass,argv[2]);
-     strcat(dname,argv[3]);
+     strcat(uname,argv[2]);
+     strcat(pass,argv[3]);
     /* Get the input data.  */
      db = recutl_build_db (2, argv);
      if (!db)
