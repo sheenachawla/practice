@@ -47,7 +47,6 @@ int               nFields;
  {
     printf("Usage: rec2gre [REC_FILE] [ROOT_PASSWORD] [DATABASE_NAME]\n");
     printf("REC_FILE: file to be converted into postgre format.\n");
-    printf("ROOT_PASSWORD: password for root login into postgre database.\n");
     printf("DATABASE_NAME: name of the database in which the new table needs to be created.\n");
  } 
 
