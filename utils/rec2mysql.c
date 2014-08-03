@@ -117,6 +117,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
     char fnull[50]="";
     char fto[50]="";
     char pri[50]="";
+   
   
    for (i = 0; i < rec_fex_size (fex); i++)
    {
@@ -150,10 +151,12 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
               a=0;
               while(fauto[a]!='\0')
               {
+               
                   strcat(fto,fauto[a]);
                   if((memcmp(fto,field_name[i],strlen(fto)-1)==0))
                   {
-                      a_flag=0;
+                  
+                      a_flag=1;
                       strcat(query," AUTO_INCREMENT");
                       strcat(pri,field_name[i]);
                   }
@@ -188,12 +191,15 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
                     strcpy(fnull,"\0");
                     n++;
                 }
+                
                 while(fauto[a]!='\0')
                 {
+                  
                     strcat(fto,fauto[a]);
                     if((memcmp(fto,field_name[i],strlen(fto)-1)==0))
                     {
-                      a_flag=0;
+                   
+                      a_flag=1;
                       strcat(query," AUTO_INCREMENT");
                       strcat(pri,field_name[i]);
                     }
@@ -209,6 +215,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
             strcat(query,",");
    }
    int l=0;
+  
    if(fkey[l]!=NULL || a_flag==0)                                               //fkey contains all the primary keys,if any, in the mysql query.
    {
       strcat(query,",primary key(");
@@ -227,6 +234,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
    }
    else
       strcat(query,")");
+    
    
   
     if (mysql_query(con, query))
@@ -262,6 +270,7 @@ rec2mysql_generate_mysql (rec_rset_t rset,rec_fex_t fex)
                 strcat(values,"\",");
             }
       }
+     
     
       if (mysql_query(con, values))
       {                                 //mysql query for values to be inserted in the table 
@@ -344,7 +353,7 @@ rec2mysql_process_data (rec_db_t db)
           m= rec_record_mset (recdesc);                                 //this record contains the the record descriptor.
           iter = rec_mset_iterator (m);
           int k=0;
-          int l,u=0,n=0,a=0;
+          int l=0,u=0,n=0,a=0;
           while (rec_mset_iterator_next (&iter, MSET_FIELD, (const void **) &field, NULL))
           {
               fname=rec_field_name(field);
