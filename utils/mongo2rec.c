@@ -3,6 +3,10 @@
 #include <mongoc.h>
 #include <stdio.h>
 
+void print_usage(void)
+{
+  printf("Usage: mongo2rec [DATABASE_NAME] [TABLE_NAME]\nDATABASE_NAME: name of the database from which rec file is created\nTABLE_NAME: nameof the table that needs to be converted into rec format");
+}
 int
 main (int   argc,
       char *argv[])
