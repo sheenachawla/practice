@@ -34,7 +34,7 @@ char              *field_name[50];
     printf("Usage: rec2mongo [REC_FILE] [DATABASE_NAME] [TABLE_NAME]\n");
     printf("REC_FILE: file to be converted into mongodb format.\n");
     printf("DATABASE_NAME: name of the database in which the new table needs to be created.\n");
-    printf("TABLE_NAME : name of the table taht needs to be created\n");
+    printf("TABLE_NAME : name of the table that needs to be created\n");
  }
 
  static void
