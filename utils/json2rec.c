@@ -1,11 +1,21 @@
+#include <config.h>
+#include <getopt.h>
+#include <xalloc.h>
+#include <gettext.h>
+#define _(str) gettext (str)
+#include <rec.h>
+#include <recutl.h>
 #include <json/json.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <stdlib.h>
+
+
 /*printing the value corresponding to boolean, double, integer and strings*/
 void print_json_value(json_object *jobj){
   enum json_type type;
-  printf("type: ",type);
+  printf("type: %d",type);
   type = json_object_get_type(jobj); /*Getting the type of the json object*/
   switch (type) {
     case json_type_boolean: printf("json_type_booleann\n");
@@ -58,7 +68,7 @@ void json_parse_array( json_object *jobj, char *key) {
 void json_parse(json_object * jobj) {
   enum json_type type;
   json_object_object_foreach(jobj, key, val) { /*Passing through every array element*/
-    printf("type: ",type);
+    printf("type:%d ",type);
     type = json_object_get_type(val);
     switch (type) {
       case json_type_boolean: 
@@ -66,7 +76,7 @@ void json_parse(json_object * jobj) {
       case json_type_int: 
       case json_type_string: print_json_value(val);
                            break; 
-      case json_type_object: printf("json_type_objectn\n");
+      case json_type_object: printf("json_type_object\n");
                            jobj = json_object_object_get(jobj, key);
                            json_parse(jobj); 
                            break;
@@ -77,15 +87,14 @@ void json_parse(json_object * jobj) {
   }
 } 
 
-int main(int argc,int **argv) {
+int main(int argc,char **argv) {
   //char * string = "{\"sitename\" : \"joys of programming\",\"categories\" : [ \"c\" , [\"c++\" , \"c\" ], \"java\", \"PHP\" ],\"author-details\": { \"admin\": false, \"name\" : \"Joys of Programming\", \"Number of Posts\" : 10 } }";
   FILE *fp;
-  //char * string="";
+ 
   char ch;
-  char fname[100];
-  strcpy(fname,argv[1]);
+  
 
-  fp=fopen(fname,"r");
+  fp=fopen(argv[1],"r");
   
    
     fseek(fp, 0, SEEK_END);
@@ -93,8 +102,8 @@ int main(int argc,int **argv) {
     rewind(fp);
 
     char* string = calloc(size + 1, 1);
-
-    fread(string,1,size,fp);
+    int val;
+    val=fread(string,1,size,fp);
   
   //printf("JSON string: %s\n", string);
   json_object * jobj = json_tokener_parse(string);     
