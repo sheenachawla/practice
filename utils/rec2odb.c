@@ -12,7 +12,7 @@
 /* Forward declarations.  */
 static bool rec2odb_process_data (rec_db_t db);
 static rec_fex_t rec2odb_determine_fields (rec_rset_t rset);
-static void rec2odb_generate_odb (rec_rset_t rset, rec_fex_t fex);
+static int rec2odb_generate_odb (rec_rset_t rset, rec_fex_t fex);
 
 /*
  * Global variables
@@ -28,7 +28,9 @@ char              const *fauto[20];
 char              pass[10];
 char              uname[10];
 char              *field_name[50];
-
+char              *ptr;
+int               ch=' ';
+int               d_flag=0;
 
 /*
  * Functions.
@@ -48,7 +50,7 @@ void err_handler(OCI_Error *err)
 }
 
 
-static void
+static int
 rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
 {
     rec_mset_iterator_t iter;
@@ -103,12 +105,19 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
     char fnull[50]="";
     char fto[50]="";
     char pri[50]="";
+    int d_pos;
   
    for (i = 0; i < rec_fex_size (fex); i++)
    {
         k=0;
         while(ftype[k]!='\0')                                      //checking for every type mentioned in the rec file against all the field names
         {
+          ptr=strchr(ftype[k],ch);
+          if(strcmp(ptr," date "))
+          {
+              d_flag=1; 
+              d_pos=i;
+          }
            strcpy(fcpy,ftype[k]);
            strtok(fcpy," ");
            if((strcmp(fcpy,field_name[i]))==0)
@@ -214,7 +223,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
    else
       strcat(query,")");
    
-
+    
     st = OCI_StatementCreate(cn);
     OCI_ExecuteStmt(st, query);
 
@@ -234,20 +243,37 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
                                                 rec_fex_elem_field_name (fex_elem[i]),
                                                 rec_fex_elem_min (fex_elem[i]));
 
-            strcat(values,"\'");
-            strcat(values,rec_field_value(field[i]));
-            if(i==(rec_fex_size(fex)-1))
+            if(d_flag==1 && i==d_pos)
             {
-                strcat(values,"\')");
+              strcat(values,"TO_DATE(");
+              strcat(values,"\'");
+              strcat(values,rec_field_value(field[i]));
+              strcat(values,"\',\'yyyy-mm-dd\')");
+              if(i==(rec_fex_size(fex)-1))
+              {
+                  strcat(values,")");
+              }
+              else
+              {
+                  strcat(values,",");
+              }
             }
             else
             {
-                strcat(values,"\',");
+              strcat(values,"\'");
+              strcat(values,rec_field_value(field[i]));
+              if(i==(rec_fex_size(fex)-1))
+              {
+                  strcat(values,"\')");
+              }
+              else
+              {
+                  strcat(values,"\',");
+              }
             }
             
       }
      
-    
     st2=OCI_StatementCreate(cn);
     
     OCI_Prepare(st2,values);
@@ -255,6 +281,7 @@ rec2odb_generate_odb (rec_rset_t rset,rec_fex_t fex)
     OCI_Commit(cn);
   }
   OCI_Cleanup();
+  return EXIT_SUCCESS;
 
   }
 
@@ -328,13 +355,20 @@ rec2odb_process_data (rec_db_t db)
           iter = rec_mset_iterator (m);
           int k=0;
           int l=0,u=0,n=0,a=0;
+
           while (rec_mset_iterator_next (&iter, MSET_FIELD, (const void **) &field, NULL))
           {
               fname=rec_field_name(field);
               if(strstr(fname,"%type")!=NULL)                          //comparing every field name of the record descriptor.
               {
                  ftype[k]=rec_field_value(field);                     //this one is for data type
-                 k++;
+                 
+                 
+                 //printf("%s\n",ftype[k] );
+
+                 
+                  
+                  k++;
               }
               if(strstr(fname,"%key")!=NULL)                             //primary key
               {
