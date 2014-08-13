@@ -23,7 +23,6 @@ char              table[10];
 char              dname[10];
 char              *field_name[50];
 
-
 /*
  * Functions.
  */
@@ -68,31 +67,40 @@ rec2json_generate_json (rec_rset_t rset,rec_fex_t fex)
         }
     }
  
-     json_object * jobj = json_object_new_object();
+ 
+    
+      /*Creating a json array*/
+     json_object *jarray = json_object_new_array();
     /* Generate the data rows.  */
     iter = rec_mset_iterator (rec_rset_mset (rset));
     while (rec_mset_iterator_next (&iter, MSET_RECORD, (const void**) &record, NULL))
     {
-    	
+       json_object * jobj = json_object_new_object();
     
         for (i = 0; i < rec_fex_size (fex); i++)
         {
-	              fex_elem[i] = rec_fex_get (fex, i);
-	              field[i] = rec_record_get_field_by_name (record,
-	                                                  rec_fex_elem_field_name (fex_elem[i]),
-	                                                  rec_fex_elem_min (fex_elem[i]));
 
-	               /*Creating a json string*/
-	  				json_object *jstring = json_object_new_string(rec_field_value(field[i]));
-	  				/*Each of these is like a key value pair*/
-	  				json_object_object_add(jobj,field_name[i], jstring);
+      
+                fex_elem[i] = rec_fex_get (fex, i);
+                field[i] = rec_record_get_field_by_name (record,
+                                                    rec_fex_elem_field_name (fex_elem[i]),
+                                                    rec_fex_elem_min (fex_elem[i]));
+
+                 /*Creating a json string*/
+            json_object *jstring = json_object_new_string(rec_field_value(field[i]));
+            /*Each of these is like a key value pair*/
+            json_object_object_add(jobj,field_name[i], jstring);
+
         }
-              
-             
+        //printf("%s\n",json_object_to_json_string(jobj) );
+          json_object_array_add(jarray,jobj);  
+                  
     }
+         printf ("%s\n",json_object_to_json_string(jarray));
       /*Now printing the json object*/
-  		printf ("The json object : %s\n",json_object_to_json_string(jobj));
+     
 }
+/* */
  static rec_fex_t 
 rec2json_determine_fields (rec_rset_t rset)
 {
