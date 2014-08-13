@@ -11,7 +11,6 @@
 #include <string.h>
 #define TYPE_VALUE_SIZE 250
 
-
 /*odb2rec structure*/
 struct odb2rec{
   rec_db_t db;
@@ -32,7 +31,7 @@ void err_handler(OCI_Error *err)
 
 void print_usage(void)
 {
-    printf("Usage: odb2rec [USERNAME] [PASSWORD] [TABLE_NAME]\nPASSWORD: password for login into oracle database\nTABLE_NAME: name of the table from which rec file is created\n");
+    printf("Usage: odb2rec [USERNAME] [PASSWORD] [TABLE_NAME]\nUSERNAME:username for logging into oracle database\nPASSWORD: password for login into oracle database\nTABLE_NAME: name of the table from which rec file is created\n");
 }
  
 int main(int argc, char *argv[])
