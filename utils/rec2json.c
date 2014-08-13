@@ -30,7 +30,7 @@ char              *field_name[50];
  /*Command line arguments  print usage function*/
  void print_usage(void)       
  {
-    printf("Usage: rec2json [REC_FILE] [DATABASE_NAME] [TABLE_NAME]\n");
+    printf("Usage: rec2json [REC_FILE]\n");
     printf("REC_FILE: file to be converted into json format.\n");
 
  }
